@@ -66,16 +66,10 @@ class GithubAuthenticationFilterTest {
     @MethodSource("userProvider")
     void authenticationFilterWithState(UserStub user) throws Exception {
         MockHttpSession session = new MockHttpSession();
-        String state = "";
 
-        try {
-            state = mockMvc.perform(MockMvcRequestBuilders.get("/oauth2/authorization/github").session(session))
-                    .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
-                    .andReturn().getResponse().getHeader(HttpHeaders.LOCATION).split("&state=")[1];
-        } catch (ArrayIndexOutOfBoundsException e) {
-            // do nothing
-            // 교육 범위 state 없어서 예외 처리
-        }
+        String state = mockMvc.perform(MockMvcRequestBuilders.get("/oauth2/authorization/github").session(session))
+                .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
+                .andReturn().getResponse().getHeader(HttpHeaders.LOCATION).split("&state=")[1];
 
         String requestUri = "/login/oauth2/code/github?code=" + user.code + "&state=" + state;
 

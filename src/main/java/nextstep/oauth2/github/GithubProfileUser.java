@@ -4,18 +4,19 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import nextstep.oauth2.OAuth2ProfileUser;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+import java.util.Map;
+
+
 public class GithubProfileUser implements OAuth2ProfileUser {
 
-    private String id;
     private String name;
-    @JsonProperty("avatar_url")
     private String imageUrl;
     private String email;
 
-    @Override
-    public String getId() {
-        return id;
+    public GithubProfileUser(Map<String, Object> attributes) {
+        this.name = attributes.get("name").toString();
+        this.imageUrl = attributes.get("avatar_url").toString();
+        this.email = attributes.get("email").toString();
     }
 
     @Override

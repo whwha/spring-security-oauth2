@@ -4,17 +4,19 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import nextstep.oauth2.OAuth2ProfileUser;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+import java.util.Map;
+
+
 public class GoogleProfileUser implements OAuth2ProfileUser {
-    private String id;
+
     private String name;
-    @JsonProperty("picture")
     private String imageUrl;
     private String email;
 
-    @Override
-    public String getId() {
-        return id;
+    public GoogleProfileUser(Map<String, Object> attributes) {
+        this.name = attributes.get("name").toString();
+        this.imageUrl = attributes.get("picture").toString();
+        this.email = attributes.get("email").toString();
     }
 
     @Override
