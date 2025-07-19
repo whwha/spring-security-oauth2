@@ -19,62 +19,36 @@ import nextstep.oauth2.registration.ClientRegistration;
 import nextstep.oauth2.registration.ClientRegistrationRepository;
 import nextstep.oauth2.userinfo.OAuth2User;
 import nextstep.oauth2.userinfo.OAuth2UserService;
-import nextstep.security.authentication.Authentication;
-import nextstep.security.authentication.AuthenticationException;
-import nextstep.security.authentication.AuthenticationManager;
-import nextstep.security.authentication.ProviderManager;
-import nextstep.security.context.HttpSessionSecurityContextRepository;
+import nextstep.security.authentication.*;
+import nextstep.security.context.SecurityContextRepository;
 import nextstep.security.context.SecurityContext;
 import nextstep.security.context.SecurityContextHolder;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.Assert;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
 import java.util.List;
 
-public class OAuth2LoginAuthenticationFilter extends GenericFilterBean {
+public class OAuth2LoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
     private static final String DEFAULT_LOGIN_REQUEST_BASE_URI = "/login/oauth2/code/";
 
     private final ClientRegistrationRepository clientRegistrationRepository;
-    private final OAuth2AuthorizedClientRepository authorizedClientRepository = new OAuth2AuthorizedClientRepository();
+    private final OAuth2AuthorizedClientRepository authorizedClientRepository;
     private final AuthorizationRequestRepository authorizationRequestRepository = new AuthorizationRequestRepository();
 
-    private Converter<OAuth2LoginAuthenticationToken, OAuth2AuthenticationToken> authenticationResultConverter = this::createAuthenticationResult;
+    private final Converter<OAuth2LoginAuthenticationToken, OAuth2AuthenticationToken> authenticationResultConverter = this::createAuthenticationResult;
 
-    private final AuthenticationManager authenticationManager;
-    private final HttpSessionSecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
-
-    public OAuth2LoginAuthenticationFilter(ClientRegistrationRepository clientRegistrationRepository, OAuth2UserService oAuth2UserService) {
+    public OAuth2LoginAuthenticationFilter(ClientRegistrationRepository clientRegistrationRepository, OAuth2AuthorizedClientRepository authorizedClientRepository, AuthenticationManager authenticationManager) {
+        super(DEFAULT_LOGIN_REQUEST_BASE_URI, authenticationManager);
         this.clientRegistrationRepository = clientRegistrationRepository;
-        this.authenticationManager = new ProviderManager(List.of(new OAuth2LoginAuthenticationProvider(oAuth2UserService)));
+        this.authorizedClientRepository = authorizedClientRepository;
     }
 
     @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        doFilter((HttpServletRequest) servletRequest, (HttpServletResponse) servletResponse, filterChain);
-    }
-
-    private void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
-        if (!requiresAuthentication(request, response)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-        try {
-            Authentication authenticationResult = attemptAuthentication(request, response);
-            if (authenticationResult == null) {
-                return;
-            }
-            successfulAuthentication(request, response, filterChain, authenticationResult);
-        } catch (AuthenticationException e) {
-            SecurityContextHolder.clearContext();
-        }
-    }
-
-    private Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) {
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) {
         // request 에서 parameter 가져오기
         MultiValueMap<String, String> params = OAuth2AuthorizationResponseUtils.toMultiMap(request.getParameterMap());
         if (!OAuth2AuthorizationResponseUtils.isAuthorizationResponse(params)) {
@@ -104,7 +78,7 @@ public class OAuth2LoginAuthenticationFilter extends GenericFilterBean {
                         new OAuth2AuthorizationExchange(authorizationRequest, authorizationResponse));
 
         // OAuth2LoginAuthenticationToken 만들기
-        OAuth2LoginAuthenticationToken authenticationResult = (OAuth2LoginAuthenticationToken) authenticationManager.authenticate(authenticationRequest);
+        OAuth2LoginAuthenticationToken authenticationResult = (OAuth2LoginAuthenticationToken) getAuthenticationManager().authenticate(authenticationRequest);
 
         // provider 인증 후 authenticated 된 OAuth2AuthenticationToken 객체 가져오기
         OAuth2AuthenticationToken oAuth2AuthenticationToken = authenticationResultConverter.convert(authenticationResult);
@@ -118,22 +92,6 @@ public class OAuth2LoginAuthenticationFilter extends GenericFilterBean {
 
         authorizedClientRepository.saveAuthorizedClient(authorizedClient, oAuth2AuthenticationToken, request, response);
         return oAuth2AuthenticationToken;
-    }
-
-    private boolean requiresAuthentication(HttpServletRequest request, HttpServletResponse response) {
-        String uri = request.getRequestURI();
-        return uri.startsWith(DEFAULT_LOGIN_REQUEST_BASE_URI);
-    }
-
-    private void successfulAuthentication(HttpServletRequest request,
-                                          HttpServletResponse response,
-                                          FilterChain filterChain,
-                                          Authentication authResult) throws IOException {
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(authResult);
-        SecurityContextHolder.setContext(context);
-        securityContextRepository.saveContext(context, request, response);
-        response.sendRedirect("/");
     }
 
     private String extractRegistrationId(HttpServletRequest request) {

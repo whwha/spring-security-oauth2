@@ -22,10 +22,8 @@ public class BasicAuthenticationFilter extends OncePerRequestFilter {
 
     private final AuthenticationManager authenticationManager;
 
-    public BasicAuthenticationFilter(UserDetailsService userDetailsService) {
-        this.authenticationManager = new ProviderManager(
-                List.of(new DaoAuthenticationProvider(userDetailsService))
-        );
+    public BasicAuthenticationFilter(AuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
     }
 
     @Override

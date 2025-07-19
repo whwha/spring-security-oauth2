@@ -24,10 +24,14 @@ public class MvcRequestMatcher implements RequestMatcher {
 
     @Override
     public boolean matches(HttpServletRequest request) {
-        if (this.method != null && !this.method.name().equals(request.getMethod())) {
+        if (notMatchMethod(request)) {
             return false;
         }
 
         return request.getRequestURI().equals(pattern);
+    }
+
+    private boolean notMatchMethod(HttpServletRequest request) {
+        return this.method != null && !this.method.name().equals(request.getMethod());
     }
 }
