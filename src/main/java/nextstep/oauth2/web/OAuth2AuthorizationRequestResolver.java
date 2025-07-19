@@ -47,7 +47,8 @@ public class OAuth2AuthorizationRequestResolver {
         String paramsQuery = UriComponentsBuilder.newInstance()
                 .queryParam("client_id", clientRegistration.getClientId())
                 .queryParam("response_type", "code")
-                .queryParam("scope", clientRegistration.getScopes())
+                // keycloak 에서 scope 여러개 입력하면 에러 발생. 하나로 처리하도록 String.join() 사용
+                .queryParam("scope", String.join(" ", clientRegistration.getScopes()))
                 .queryParam("redirect_uri", clientRegistration.getRedirectUri())
                 .queryParam("state", state)
                 .build()

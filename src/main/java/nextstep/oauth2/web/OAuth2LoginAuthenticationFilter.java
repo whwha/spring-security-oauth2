@@ -82,7 +82,7 @@ public class OAuth2LoginAuthenticationFilter extends GenericFilterBean {
         }
 
         // session 에서 authorizationRequest 가져오기
-        OAuth2AuthorizationRequest authorizationRequest = authorizationRequestRepository.removeAuthorizationRequest(request, response);
+        OAuth2AuthorizationRequest authorizationRequest = authorizationRequestRepository.loadAuthorizationRequest(request);
         if (authorizationRequest == null) {
             throw new OAuth2AuthorizationException();
         }

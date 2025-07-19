@@ -43,7 +43,7 @@ public class OAuth2AuthenticationToken implements Authentication {
 
     @Override
     public boolean isAuthenticated() {
-        return false;
+        return authenticated;
     }
 
     public String getName() {
