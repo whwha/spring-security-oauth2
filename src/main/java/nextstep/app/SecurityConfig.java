@@ -51,7 +51,7 @@ public class SecurityConfig {
 
     @Bean
     public DelegatingFilterProxy delegatingFilterProxy() {
-        return new DelegatingFilterProxy(filterChainProxy(List.of(securityFilterChain())));
+        return new DelegatingFilterProxy(filterChainProxy(List.of(securityFilterChain2(new HttpSecurity()))));
     }
 
     @Bean
@@ -78,24 +78,25 @@ public class SecurityConfig {
                 new OAuth2LoginAuthenticationProvider(oAuth2UserService)));
     }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain() {
-        return new DefaultSecurityFilterChain(
-                List.of(
-                        new CsrfFilter(Set.of(new MvcRequestMatcher(HttpMethod.POST, "/login"))),
-                        new SecurityContextHolderFilter(),
-                        new UsernamePasswordAuthenticationFilter(authenticationManager()),
-                        new BasicAuthenticationFilter(authenticationManager()),
-                        new OAuth2AuthorizationRequestRedirectFilter(clientRegistrationRepository()),
-                        new OAuth2LoginAuthenticationFilter(clientRegistrationRepository(), new OAuth2AuthorizedClientRepository(), authenticationManager()),
-                        new AuthorizationFilter(requestAuthorizationManager())
-                )
-        );
-    }
+//    @Bean
+//    public SecurityFilterChain securityFilterChain() {
+//        return new DefaultSecurityFilterChain(
+//                List.of(
+//                        new CsrfFilter(Set.of(new MvcRequestMatcher(HttpMethod.POST, "/login"))),
+//                        new SecurityContextHolderFilter(),
+//                        new UsernamePasswordAuthenticationFilter(authenticationManager()),
+//                        new BasicAuthenticationFilter(authenticationManager()),
+//                        new OAuth2AuthorizationRequestRedirectFilter(clientRegistrationRepository()),
+//                        new OAuth2LoginAuthenticationFilter(clientRegistrationRepository(), new OAuth2AuthorizedClientRepository(), authenticationManager()),
+//                        new AuthorizationFilter(requestAuthorizationManager())
+//                )
+//        );
+//    }
 
     @Bean
     public SecurityFilterChain securityFilterChain2(HttpSecurity http) {
         return http
+                .csrf(c -> c.ignoringRequestMatchers("/login"))
                 .build();
     }
 
