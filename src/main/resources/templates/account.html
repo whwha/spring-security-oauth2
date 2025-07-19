@@ -19,7 +19,7 @@
 <h2>Update Account Information</h2>
 <form action="/account/update" method="post">
     <!-- CSRF 토큰을 숨겨진 필드로 포함 -->
-<!--    <input type="hidden" name="_csrf" th:value="${csrfToken.token}">-->
+    <input type="hidden" name="_csrf" th:value="${csrfToken.token}">
 
     <!-- 이메일 수정 필드 -->
     <label for="email">Email:</label>
