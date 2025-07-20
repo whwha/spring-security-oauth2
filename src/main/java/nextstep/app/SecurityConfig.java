@@ -95,6 +95,7 @@ public class SecurityConfig {
         return http
                 .csrf(c -> c.ignoringRequestMatchers("/login"))
                 .httpBasic(Customizer.withDefaults())
+                .formLogin(Customizer.withDefaults())
                 .build();
     }
 

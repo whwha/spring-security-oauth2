@@ -6,6 +6,7 @@ import nextstep.security.config.Customizer;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.SecurityFilterChain;
 import nextstep.security.config.annotation.configurers.CsrfConfigurer;
+import nextstep.security.config.annotation.configurers.FormLoginConfigurer;
 import nextstep.security.config.annotation.configurers.HttpBasicConfigurer;
 import nextstep.security.config.annotation.configurers.SecurityContextConfigurer;
 
@@ -65,7 +66,8 @@ public class HttpSecurity {
         return HttpSecurity.this;
     }
 
-    public HttpSecurity formLogin() {
+    public HttpSecurity formLogin(Customizer<FormLoginConfigurer> formLoginCustomizer) {
+        formLoginCustomizer.customize(getOrApply(new FormLoginConfigurer()));
         return HttpSecurity.this;
     }
 
