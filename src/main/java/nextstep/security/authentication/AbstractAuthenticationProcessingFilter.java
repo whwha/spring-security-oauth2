@@ -25,11 +25,11 @@ public abstract class AbstractAuthenticationProcessingFilter extends GenericFilt
     private static final AuthenticationSuccessHandler successHandler = (request, response, authentication) -> response.sendRedirect("/");
     private static final AuthenticationFailureHandler failureHandler = (request, response, exception) -> response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
 
-    protected AbstractAuthenticationProcessingFilter(String filterProcessesUrl, AuthenticationManager authenticationManager) {
-        this(request -> {
+    protected AbstractAuthenticationProcessingFilter(String filterProcessesUrl) {
+        this.requiresAuthenticationRequestMatcher = request -> {
             String uri = request.getRequestURI();
             return uri.startsWith(filterProcessesUrl);
-        }, authenticationManager);
+        };
     }
 
     protected AbstractAuthenticationProcessingFilter(RequestMatcher requiresAuthenticationRequestMatcher, AuthenticationManager authenticationManager) {
@@ -84,5 +84,9 @@ public abstract class AbstractAuthenticationProcessingFilter extends GenericFilt
 
     protected AuthenticationManager getAuthenticationManager() {
         return authenticationManager;
+    }
+
+    public void setAuthenticationManager(AuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
     }
 }

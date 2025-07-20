@@ -2,13 +2,11 @@ package nextstep.security.config.annotation;
 
 import jakarta.servlet.Filter;
 import nextstep.security.authentication.AuthenticationManager;
+import nextstep.security.authentication.AuthenticationProvider;
 import nextstep.security.config.Customizer;
 import nextstep.security.config.DefaultSecurityFilterChain;
-import nextstep.security.config.SecurityFilterChain;
-import nextstep.security.config.annotation.configurers.CsrfConfigurer;
-import nextstep.security.config.annotation.configurers.FormLoginConfigurer;
-import nextstep.security.config.annotation.configurers.HttpBasicConfigurer;
-import nextstep.security.config.annotation.configurers.SecurityContextConfigurer;
+import nextstep.security.config.annotation.authentication.AuthenticationManagerBuilder;
+import nextstep.security.config.annotation.configurers.*;
 
 import java.util.*;
 
@@ -17,8 +15,8 @@ public class HttpSecurity {
     private List<Filter> filters = new ArrayList<>();
     private final Map<Class<?>, Object> sharedObjects = new HashMap<>();
 
-    public HttpSecurity(AuthenticationManager authenticationManager, Map<Class<?>, Object> sharedObjects) {
-        setSharedObject(AuthenticationManager.class, authenticationManager);
+    public HttpSecurity(AuthenticationManagerBuilder authenticationManagerBuilder, Map<Class<?>, Object> sharedObjects) {
+        setSharedObject(AuthenticationManagerBuilder.class, authenticationManagerBuilder);
         for (Map.Entry<Class<?>, Object> entry : sharedObjects.entrySet()) {
             setSharedObject((Class<Object>) entry.getKey(), entry.getValue());
         }
@@ -32,16 +30,15 @@ public class HttpSecurity {
         this.sharedObjects.put(sharedType, object);
     }
 
-    public SecurityFilterChain build() {
-        init();
-        configure();
-        return new DefaultSecurityFilterChain(filters);
-    }
-
     private void init() {
         for (SecurityConfigurer configurer : this.configurers.values()) {
             configurer.init(this);
         }
+    }
+
+    private void beforeConfigure() {
+        AuthenticationManager manager = getAuthenticationRegistry().build();
+        setSharedObject(AuthenticationManager.class, manager);
     }
 
     private void configure() {
@@ -50,11 +47,26 @@ public class HttpSecurity {
         }
     }
 
+    public DefaultSecurityFilterChain build() {
+        init();
+        beforeConfigure();
+        configure();
+        return new DefaultSecurityFilterChain(filters);
+    }
+
     public HttpSecurity addFilter(Filter filter) {
         filters.add(filter);
         return this;
     }
 
+    public HttpSecurity authenticationProvider(AuthenticationProvider authenticationProvider) {
+        getAuthenticationRegistry().authenticationProvider(authenticationProvider);
+        return this;
+    }
+
+    private AuthenticationManagerBuilder getAuthenticationRegistry() {
+        return getSharedObject(AuthenticationManagerBuilder.class);
+    }
 
     public HttpSecurity csrf(Customizer<CsrfConfigurer> csrfCustomizer) {
         csrfCustomizer.customize(getOrApply(new CsrfConfigurer()));
@@ -68,6 +80,11 @@ public class HttpSecurity {
 
     public HttpSecurity formLogin(Customizer<FormLoginConfigurer> formLoginCustomizer) {
         formLoginCustomizer.customize(getOrApply(new FormLoginConfigurer()));
+        return HttpSecurity.this;
+    }
+
+    public HttpSecurity oauth2Login(Customizer<OAuth2LoginConfigurer> oauth2LoginCustomizer) {
+        oauth2LoginCustomizer.customize(getOrApply(new OAuth2LoginConfigurer()));
         return HttpSecurity.this;
     }
 
