@@ -11,8 +11,6 @@ import nextstep.security.authorization.AuthorityAuthorizationManager;
 import nextstep.security.authorization.PermitAllAuthorizationManager;
 import nextstep.security.authorization.SecuredMethodInterceptor;
 import nextstep.security.config.Customizer;
-import nextstep.security.config.DelegatingFilterProxy;
-import nextstep.security.config.FilterChainProxy;
 import nextstep.security.config.SecurityFilterChain;
 import nextstep.security.config.annotation.EnableWebSecurity;
 import nextstep.security.config.annotation.HttpSecurity;
@@ -23,7 +21,6 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.http.HttpMethod;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Configuration
@@ -39,7 +36,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain2(HttpSecurity http) {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         return http
                 .csrf(c -> c.ignoringRequestMatchers("/login"))
                 .authorizeHttpRequests(
@@ -66,16 +63,6 @@ public class SecurityConfig {
     }
 
     @Bean
-    public DelegatingFilterProxy delegatingFilterProxy(HttpSecurity httpSecurity) {
-        return new DelegatingFilterProxy(filterChainProxy(List.of(securityFilterChain2(httpSecurity))));
-    }
-
-    @Bean
-    public FilterChainProxy filterChainProxy(List<SecurityFilterChain> securityFilterChains) {
-        return new FilterChainProxy(securityFilterChains);
-    }
-
-    @Bean
     public ClientRegistrationRepository clientRegistrationRepository() {
         Map<String, ClientRegistration> registrations = getClientRegistrations(oAuth2ClientProperties);
         return new ClientRegistrationRepository(registrations);
@@ -93,4 +80,3 @@ public class SecurityConfig {
         return new ClientRegistration(registrationId, registration.getClientId(), registration.getClientSecret(), registration.getRedirectUri(), registration.getScope(), provider.getAuthorizationUri(), provider.getTokenUri(), provider.getUserInfoUri(), provider.getUserNameAttributeName());
     }
 }
-
