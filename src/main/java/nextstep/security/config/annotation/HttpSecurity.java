@@ -1,19 +1,35 @@
 package nextstep.security.config.annotation;
 
 import jakarta.servlet.Filter;
+import nextstep.security.authentication.AuthenticationManager;
 import nextstep.security.config.Customizer;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.SecurityFilterChain;
 import nextstep.security.config.annotation.configurers.CsrfConfigurer;
 import nextstep.security.config.annotation.configurers.HttpBasicConfigurer;
+import nextstep.security.config.annotation.configurers.SecurityContextConfigurer;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 public class HttpSecurity {
     private final LinkedHashMap<Class<? extends SecurityConfigurer>, SecurityConfigurer> configurers = new LinkedHashMap<>();
     private List<Filter> filters = new ArrayList<>();
+    private final Map<Class<?>, Object> sharedObjects = new HashMap<>();
+
+    public HttpSecurity(AuthenticationManager authenticationManager, Map<Class<?>, Object> sharedObjects) {
+        setSharedObject(AuthenticationManager.class, authenticationManager);
+        for (Map.Entry<Class<?>, Object> entry : sharedObjects.entrySet()) {
+            setSharedObject((Class<Object>) entry.getKey(), entry.getValue());
+        }
+    }
+
+    public <C> C getSharedObject(Class<C> sharedType) {
+        return (C) this.sharedObjects.get(sharedType);
+    }
+
+    public <C> void setSharedObject(Class<C> sharedType, C object) {
+        this.sharedObjects.put(sharedType, object);
+    }
 
     public SecurityFilterChain build() {
         init();
@@ -54,6 +70,11 @@ public class HttpSecurity {
     }
 
     public HttpSecurity authorizeHttpRequests() {
+        return HttpSecurity.this;
+    }
+
+    public HttpSecurity securityContext(Customizer<SecurityContextConfigurer> securityContextCustomizer) {
+        securityContextCustomizer.customize(getOrApply(new SecurityContextConfigurer()));
         return HttpSecurity.this;
     }
 

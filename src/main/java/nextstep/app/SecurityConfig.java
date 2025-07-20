@@ -47,8 +47,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public DelegatingFilterProxy delegatingFilterProxy() {
-        return new DelegatingFilterProxy(filterChainProxy(List.of(securityFilterChain2(new HttpSecurity()))));
+    public DelegatingFilterProxy delegatingFilterProxy(HttpSecurity httpSecurity) {
+        return new DelegatingFilterProxy(filterChainProxy(List.of(securityFilterChain2(httpSecurity))));
     }
 
     @Bean
