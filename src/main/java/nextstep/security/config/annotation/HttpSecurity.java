@@ -1,18 +1,25 @@
 package nextstep.security.config.annotation;
 
-import jakarta.servlet.Filter;
+import jakarta.servlet.*;
 import nextstep.security.authentication.AuthenticationManager;
 import nextstep.security.authentication.AuthenticationProvider;
 import nextstep.security.config.Customizer;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.annotation.authentication.AuthenticationManagerBuilder;
 import nextstep.security.config.annotation.configurers.*;
+import org.springframework.core.OrderComparator;
+import org.springframework.core.Ordered;
 
+import java.io.IOException;
 import java.util.*;
 
 public class HttpSecurity {
     private final LinkedHashMap<Class<? extends SecurityConfigurer>, SecurityConfigurer> configurers = new LinkedHashMap<>();
-    private List<Filter> filters = new ArrayList<>();
+
+    private List<OrderedFilter> filters = new ArrayList<>();
+
+    private FilterOrderRegistration filterOrders = new FilterOrderRegistration();
+
     private final Map<Class<?>, Object> sharedObjects = new HashMap<>();
 
     public HttpSecurity(AuthenticationManagerBuilder authenticationManagerBuilder, Map<Class<?>, Object> sharedObjects) {
@@ -51,11 +58,25 @@ public class HttpSecurity {
         init();
         beforeConfigure();
         configure();
-        return new DefaultSecurityFilterChain(filters);
+        return performBuild();
+    }
+
+    private DefaultSecurityFilterChain performBuild() {
+        this.filters.sort(OrderComparator.INSTANCE);
+
+        List<Filter> sortedFilters = new ArrayList<>(this.filters.size());
+        for (Filter filter : this.filters) {
+            sortedFilters.add(((OrderedFilter) filter).filter);
+        }
+        return new DefaultSecurityFilterChain(sortedFilters);
     }
 
     public HttpSecurity addFilter(Filter filter) {
-        filters.add(filter);
+        Integer order = this.filterOrders.getOrder(filter.getClass());
+        if (order == null) {
+            throw new IllegalArgumentException();
+        }
+        filters.add(new OrderedFilter(filter, order));
         return this;
     }
 
@@ -106,5 +127,33 @@ public class HttpSecurity {
         }
         this.configurers.put(clazz, configurer);
         return configurer;
+    }
+
+    private static final class OrderedFilter implements Ordered, Filter {
+
+        private final Filter filter;
+
+        private final int order;
+
+        private OrderedFilter(Filter filter, int order) {
+            this.filter = filter;
+            this.order = order;
+        }
+
+        @Override
+        public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
+                throws IOException, ServletException {
+            this.filter.doFilter(servletRequest, servletResponse, filterChain);
+        }
+
+        @Override
+        public int getOrder() {
+            return this.order;
+        }
+
+        @Override
+        public String toString() {
+            return "OrderedFilter{" + "filter=" + this.filter + ", order=" + this.order + '}';
+        }
     }
 }

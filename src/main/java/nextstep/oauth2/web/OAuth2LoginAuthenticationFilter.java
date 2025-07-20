@@ -14,7 +14,6 @@ import nextstep.oauth2.registration.ClientRegistration;
 import nextstep.oauth2.registration.ClientRegistrationRepository;
 import nextstep.security.authentication.AbstractAuthenticationProcessingFilter;
 import nextstep.security.authentication.Authentication;
-import nextstep.security.authentication.AuthenticationManager;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.Assert;
 import org.springframework.util.MultiValueMap;

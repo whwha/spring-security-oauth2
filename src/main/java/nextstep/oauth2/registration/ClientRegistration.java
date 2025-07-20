@@ -12,10 +12,6 @@ public class ClientRegistration {
 
     private String clientSecret;
 
-//    private ClientAuthenticationMethod clientAuthenticationMethod;
-
-//    private AuthorizationGrantType authorizationGrantType;
-
     private String redirectUri;
 
     private Set<String> scopes = Collections.emptySet();
