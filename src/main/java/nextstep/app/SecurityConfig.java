@@ -89,6 +89,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain2(HttpSecurity http) {
         return http
                 .csrf(c -> c.ignoringRequestMatchers("/login"))
+                .authorizeHttpRequests(
+                        authorizeHttpRequests -> authorizeHttpRequests
+                                .addEntry(new MvcRequestMatcher(HttpMethod.GET, "/members"), new AuthorityAuthorizationManager(roleHierarchy(), "ADMIN"))
+                                .addEntry(new MvcRequestMatcher(HttpMethod.GET, "/members/me"), new AuthorityAuthorizationManager(roleHierarchy(), "USER"))
+                                .addEntry(AnyRequestMatcher.INSTANCE, new PermitAllAuthorizationManager()))
                 .httpBasic(Customizer.withDefaults())
                 .formLogin(Customizer.withDefaults())
                 .oauth2Login(Customizer.withDefaults())
