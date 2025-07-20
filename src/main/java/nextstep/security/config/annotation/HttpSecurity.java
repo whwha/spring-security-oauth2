@@ -5,6 +5,7 @@ import nextstep.security.config.Customizer;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.SecurityFilterChain;
 import nextstep.security.config.annotation.configurers.CsrfConfigurer;
+import nextstep.security.config.annotation.configurers.HttpBasicConfigurer;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -43,7 +44,8 @@ public class HttpSecurity {
         return HttpSecurity.this;
     }
 
-    public HttpSecurity httpBasic() {
+    public HttpSecurity httpBasic(Customizer<HttpBasicConfigurer> httpBasicCustomizer) {
+        httpBasicCustomizer.customize(getOrApply(new HttpBasicConfigurer()));
         return HttpSecurity.this;
     }
 

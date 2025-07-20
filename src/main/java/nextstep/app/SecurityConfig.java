@@ -15,10 +15,7 @@ import nextstep.security.access.hierarchicalroles.RoleHierarchy;
 import nextstep.security.access.hierarchicalroles.RoleHierarchyImpl;
 import nextstep.security.authentication.*;
 import nextstep.security.authorization.*;
-import nextstep.security.config.DefaultSecurityFilterChain;
-import nextstep.security.config.DelegatingFilterProxy;
-import nextstep.security.config.FilterChainProxy;
-import nextstep.security.config.SecurityFilterChain;
+import nextstep.security.config.*;
 import nextstep.security.config.annotation.EnableWebSecurity;
 import nextstep.security.config.annotation.HttpSecurity;
 import nextstep.security.context.SecurityContextHolderFilter;
@@ -97,6 +94,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain2(HttpSecurity http) {
         return http
                 .csrf(c -> c.ignoringRequestMatchers("/login"))
+                .httpBasic(Customizer.withDefaults())
                 .build();
     }
 

@@ -1,0 +1,39 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+'skinparam linetype polyline
+'skinparam linetype ortho
+
+interface Customizer {
+    +customize()
+    +{static}withDefaults()
+}
+interface SecurityConfigurer {
+    +init(http: HttpSecurity)
+    +configure(http: HttpSecurity)
+}
+interface Filter
+class CsrfConfigurer
+class CsrfFilter
+class HttpSecurity {
+    +build()
+    -init()
+    -configure()
+}
+
+
+SecurityConfigurer <|.. CsrfConfigurer
+CsrfFilter <-- CsrfConfigurer
+
+' HttpSecurity는 CsrfConfigurer를 생성하고 소유함 (Composition에 가까운 Aggregation)
+CsrfConfigurer --o HttpSecurity
+
+' HttpSecurity는 Customizer를 사용 (메서드 파라미터)
+Customizer <.. HttpSecurity
+
+' CsrfConfigurer는 configure 메서드에서 HttpSecurity를 사용 (Dependency)
+CsrfConfigurer ..> HttpSecurity : "uses in configure()"
+Filter --o HttpSecurity
+
+
+@enduml
