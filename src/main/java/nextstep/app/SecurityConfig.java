@@ -29,12 +29,6 @@ import java.util.Map;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final OAuth2ClientProperties oAuth2ClientProperties;
-
-    public SecurityConfig(OAuth2ClientProperties oAuth2ClientProperties) {
-        this.oAuth2ClientProperties = oAuth2ClientProperties;
-    }
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         return http
@@ -60,23 +54,5 @@ public class SecurityConfig {
         return RoleHierarchyImpl.with()
                 .role("ADMIN").implies("USER")
                 .build();
-    }
-
-    @Bean
-    public ClientRegistrationRepository clientRegistrationRepository() {
-        Map<String, ClientRegistration> registrations = getClientRegistrations(oAuth2ClientProperties);
-        return new ClientRegistrationRepository(registrations);
-    }
-
-    private static Map<String, ClientRegistration> getClientRegistrations(OAuth2ClientProperties properties) {
-        Map<String, ClientRegistration> clientRegistrations = new HashMap<>();
-        properties.getRegistration().forEach((key, value) -> clientRegistrations.put(key,
-                getClientRegistration(key, value, properties.getProvider().get(key))));
-        return clientRegistrations;
-    }
-
-    private static ClientRegistration getClientRegistration(String registrationId,
-                                                            OAuth2ClientProperties.Registration registration, OAuth2ClientProperties.Provider provider) {
-        return new ClientRegistration(registrationId, registration.getClientId(), registration.getClientSecret(), registration.getRedirectUri(), registration.getScope(), provider.getAuthorizationUri(), provider.getTokenUri(), provider.getUserInfoUri(), provider.getUserNameAttributeName());
     }
 }
