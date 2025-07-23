@@ -7,6 +7,7 @@ import nextstep.security.config.Customizer;
 import nextstep.security.config.DefaultSecurityFilterChain;
 import nextstep.security.config.annotation.authentication.AuthenticationManagerBuilder;
 import nextstep.security.config.annotation.configurers.*;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.Ordered;
 
@@ -27,6 +28,10 @@ public class HttpSecurity {
         for (Map.Entry<Class<?>, Object> entry : sharedObjects.entrySet()) {
             setSharedObject((Class<Object>) entry.getKey(), entry.getValue());
         }
+    }
+
+    private ApplicationContext getContext() {
+        return getSharedObject(ApplicationContext.class);
     }
 
     public <C> C getSharedObject(Class<C> sharedType) {
@@ -109,8 +114,10 @@ public class HttpSecurity {
         return HttpSecurity.this;
     }
 
-    public HttpSecurity authorizeHttpRequests(Customizer<AuthorizeHttpRequestsConfigurer> authorizeHttpRequestsCustomizer) {
-        authorizeHttpRequestsCustomizer.customize(getOrApply(new AuthorizeHttpRequestsConfigurer()));
+    public HttpSecurity authorizeHttpRequests(
+            Customizer<AuthorizeHttpRequestsConfigurer.AuthorizationManagerRequestMatcherRegistry> authorizeHttpRequestsCustomizer) {
+        ApplicationContext context = getContext();
+        authorizeHttpRequestsCustomizer.customize(getOrApply(new AuthorizeHttpRequestsConfigurer(context)).getRegistry());
         return HttpSecurity.this;
     }
 
